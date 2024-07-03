@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Questions and Solutions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .question {
+            background-color: #f4f4f4;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #333;
+        }
+        .solution {
+            background-color: #e2e2e2;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #007BFF;
+        }
+        pre {
+            background-color: #333;
+            color: #fff;
+            padding: 15px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SQL Questions and Solutions</h1>
+
+        <div class="question">
+            <h2>DML - Insert with Condition</h2>
+            <p><strong>Problem Statement:</strong> Insert a new employee into the <code>employees</code> table only if an employee with the same email does not already exist.</p>
+            <pre>
+CREATE TABLE employees (
+    id INT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    hire_date DATE,
+    job_title VARCHAR(50),
+    salary DECIMAL(10, 2),
+    department_id INT
+);
+
+INSERT INTO employees (id, first_name, last_name, email, hire_date, job_title, salary, department_id) VALUES
+(1, 'Alice', 'Smith', 'alice.smith@example.com', '2018-01-15', 'Engineer', 75000, 1),
+(2, 'Bob', 'Johnson', 'bob.johnson@example.com', '2016-03-22', 'Manager', 85000, 2);
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+INSERT INTO employees (first_name, last_name, email, hire_date, job_title, salary, department_id)
+SELECT 'John', 'Doe', 'john.doe@example.com', '2024-01-01', 'Engineer', 70000, 1
+WHERE NOT EXISTS (SELECT 1 FROM employees WHERE email = 'john.doe@example.com');
+            </pre>
+        </div>
+
+        <div class="question">
+            <h2>DML - Update with Condition</h2>
+            <p><strong>Problem Statement:</strong> Update the salary of employees who have the job title 'Engineer' by 10%.</p>
+            <pre>
+-- Same `employees` table as above.
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+UPDATE employees
+SET salary = salary * 1.10
+WHERE job_title = 'Engineer';
+            </pre>
+        </div>
+
+        <div class="question">
+            <h2>DDL - Create and Alter Table</h2>
+            <p><strong>Problem Statement:</strong> Create a new table <code>projects</code> and then add a foreign key constraint linking <code>employees</code> to <code>projects</code>.</p>
+            <pre>
+CREATE TABLE projects (
+    project_id INT PRIMARY KEY,
+    project_name VARCHAR(100),
+    start_date DATE,
+    end_date DATE
+);
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+ALTER TABLE employees
+ADD project_id INT;
+
+ALTER TABLE employees
+ADD CONSTRAINT fk_project
+FOREIGN KEY (project_id) REFERENCES projects(project_id);
+            </pre>
+        </div>
+
+        <div class="question">
+            <h2>DQL - Subquery and Join</h2>
+            <p><strong>Problem Statement:</strong> Retrieve employees who have the highest salary within each department.</p>
+            <pre>
+-- Same `employees` table as above.
+CREATE TABLE departments (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(50)
+);
+
+INSERT INTO departments (department_id, department_name) VALUES
+(1, 'Engineering'),
+(2, 'Management');
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+SELECT e.*
+FROM employees e
+INNER JOIN (
+    SELECT department_id, MAX(salary) AS max_salary
+    FROM employees
+    GROUP BY department_id
+) dept
+ON e.department_id = dept.department_id AND e.salary = dept.max_salary;
+            </pre>
+        </div>
+
+        <div class="question">
+            <h2>DQL - Group By and Having</h2>
+            <p><strong>Problem Statement:</strong> Find the average salary of employees for each job title and only return job titles where the average salary is above 60,000.</p>
+            <pre>
+-- Same `employees` table as above.
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+SELECT job_title, AVG(salary) AS avg_salary
+FROM employees
+GROUP BY job_title
+HAVING AVG(salary) > 60000;
+            </pre>
+        </div>
+
+        <div class="question">
+            <h2>DML - Delete with Condition</h2>
+            <p><strong>Problem Statement:</strong> Delete employees who have not been active in the last two years (considering a column <code>last_active_date</code>).</p>
+            <pre>
+ALTER TABLE employees
+ADD last_active_date DATE;
+
+UPDATE employees
+SET last_active_date = '2022-01-10' WHERE id = 1;
+UPDATE employees
+SET last_active_date = '2021-02-15' WHERE id = 2;
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+DELETE FROM employees
+WHERE last_active_date < DATEADD(YEAR, -2, GETDATE());
+            </pre>
+        </div>
+
+        <div class="question">
+            <h2>DQL - Analytical Functions</h2>
+            <p><strong>Problem Statement:</strong> Retrieve the cumulative salary of employees, ordered by their hire date.</p>
+            <pre>
+-- Same `employees` table as above.
+            </pre>
+        </div>
+        <div class="solution">
+            <h2>Solution:</h2>
+            <pre>
+SELECT id, first_name, last_name, salary, hire_date,
+       SUM(salary) OVER (ORDER BY hire_date) AS cumulative_salary
+FROM employees
+ORDER BY hire_date;
+            </pre>
+        </div>
+
+    </div>
+</body>
+</html>
